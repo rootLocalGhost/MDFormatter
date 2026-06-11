@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Markdown & Math Formatter</title>
+  <title>Markdown Studio</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,9 +121,36 @@
       font-size: 24px;
     }
 
+    .title-input-container {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius);
+      padding: 4px 12px;
+      border: 1px solid var(--border);
+      flex: 0 1 300px;
+    }
+
+    .title-input-container input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .title-input-container input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .title-input-container:focus-within {
+      border-color: var(--accent-blue);
+    }
+
     .controls {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
 
     .btn {
@@ -212,11 +239,23 @@
       margin: 0 auto;
       line-height: 1.7;
       font-size: 15px;
+      /* Helps with PDF exporting background */
+      background-color: var(--bg);
     }
 
-    /* Math specific styling tweaks */
+    /* Math specific styling */
     .markdown-body .katex {
       font-size: 1.15em;
+    }
+
+    /* Mermaid diagrams specific styling */
+    .mermaid {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 15px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin: 1.5em 0;
+      text-align: center;
     }
 
     .markdown-body h1,
@@ -347,11 +386,6 @@
       color: var(--accent-blue);
     }
 
-    .lang-tag .material-icons {
-      font-size: 14px;
-      opacity: 0.7;
-    }
-
     .code-actions {
       display: flex;
       gap: 8px;
@@ -369,10 +403,6 @@
       align-items: center;
       gap: 5px;
       font-size: 12px;
-    }
-
-    .action-btn .material-icons {
-      font-size: 14px;
     }
 
     .action-btn:hover {
@@ -425,13 +455,15 @@
       gap: 8px;
     }
 
-    #toast .material-icons {
-      font-size: 18px;
-    }
-
     #toast.show {
       transform: translateY(0);
       opacity: 1;
+    }
+
+    @media (max-width: 900px) {
+      .title-input-container {
+        display: none; /* Hide title input on very small screens to save space */
+      }
     }
 
     @media (max-width: 768px) {
@@ -439,16 +471,13 @@
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
       }
-
       .editor-container {
         border-right: none;
         border-bottom: 1px solid var(--border);
       }
-
       .preview-container {
         padding: 15px;
       }
-
       .brand span:not(.material-icons) {
         display: none;
       }
@@ -461,14 +490,18 @@
   <header class="animate__animated animate__fadeInDown">
     <div class="brand">
       <span class="material-icons">code</span>
-      <span>Markdown Formatter</span>
+      <span>Markdown Studio</span>
     </div>
+    
+    <div class="title-input-container" title="This title is used for HTML and PDF exports">
+      <span class="material-icons" style="font-size: 16px; margin-right: 8px; color: var(--text-dim)">edit_document</span>
+      <input type="text" id="docTitle" placeholder="Document Title..." value="My_Document">
+    </div>
+
     <div class="controls">
       <button class="btn danger" id="clearBtn" title="Clear Input"><span class="material-icons">delete</span></button>
-      <button class="btn" id="toggleAllBtn"><span class="material-icons">unfold_more</span> Expand/Collapse</button>
-      <button class="btn" id="exportBtn"><span class="material-icons">file_download</span> Export HTML</button>
-      <button class="btn primary" id="copyAllBtn"><span class="material-icons">content_copy</span> Copy All
-        Code</button>
+      <button class="btn" id="exportPdfBtn" title="Export as PDF"><span class="material-icons">picture_as_pdf</span> PDF</button>
+      <button class="btn" id="exportHtmlBtn" title="Export as HTML"><span class="material-icons">html</span> HTML</button>
     </div>
   </header>
 
@@ -484,20 +517,29 @@
 
   <div id="toast"><span class="material-icons">check_circle</span> Copied to clipboard!</div>
 
-  <!-- Dependencies -->
+  <!-- Core Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   
-  <!-- KaTeX JS for Math support -->
+  <!-- Math Support: KaTeX -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <!-- Marked Extension for KaTeX -->
   <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
+
+  <!-- Diagram Support: Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+
+  <!-- PDF Support: html2pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
     const inputEl = document.getElementById('input');
     const outputEl = document.getElementById('output');
     const toastEl = document.getElementById('toast');
+    const docTitleInput = document.getElementById('docTitle');
     let isAllCollapsed = false;
+
+    // Initialize Diagram Config
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
 
     // Initialize Marked options
     marked.setOptions({
@@ -505,7 +547,7 @@
       gfm: true,
     });
     
-    // Add the KaTeX extension to marked so it parses Math safely before Markdown
+    // Add the KaTeX extension for math
     marked.use(markedKatex({ throwOnError: false }));
 
     function debounce(func, wait) {
@@ -516,18 +558,42 @@
       };
     }
 
-    function render() {
+    async function render() {
       const rawMarkdown = inputEl.value;
       const html = marked.parse(rawMarkdown);
       outputEl.innerHTML = html;
-      postProcess();
+      await postProcess();
     }
 
-    function postProcess() {
-      const blocks = outputEl.querySelectorAll('pre code');
+    async function postProcess() {
+      // 1. Handle Mermaid Diagrams First
+      const codeBlocks = Array.from(outputEl.querySelectorAll('pre code'));
+      
+      const mermaidBlocks = codeBlocks.filter(block => 
+        Array.from(block.classList).some(cls => cls === 'language-mermaid')
+      );
 
-      blocks.forEach((block, index) => {
-        // Skip rendering wrapper if already processed
+      mermaidBlocks.forEach((block) => {
+        const pre = block.parentElement;
+        const mermaidDiv = document.createElement('div');
+        mermaidDiv.className = 'mermaid';
+        mermaidDiv.textContent = block.textContent;
+        // Replace the <pre> block entirely with the diagram container
+        pre.parentNode.replaceChild(mermaidDiv, pre);
+      });
+
+      // Render the diagrams
+      try {
+        if (mermaidBlocks.length > 0) {
+          await mermaid.run({ nodes: outputEl.querySelectorAll('.mermaid') });
+        }
+      } catch (err) {
+        console.error("Mermaid parsing error:", err);
+      }
+
+      // 2. Handle Syntax Highlighting for remaining code blocks
+      const remainingBlocks = outputEl.querySelectorAll('pre code');
+      remainingBlocks.forEach((block) => {
         if(block.parentElement.parentElement.classList.contains('code-wrapper')) return;
 
         hljs.highlightElement(block);
@@ -588,6 +654,7 @@
         });
       });
 
+      // Make links open in new tab
       outputEl.querySelectorAll('a').forEach(a => a.target = '_blank');
     }
 
@@ -605,36 +672,14 @@
       setTimeout(() => toastEl.classList.remove('show'), 2000);
     }
 
-    document.getElementById('copyAllBtn').addEventListener('click', () => {
-      const blocks = outputEl.querySelectorAll('pre code');
-      if (blocks.length === 0) return;
-
-      let allCode = '';
-      blocks.forEach(b => {
-        allCode += b.innerText + "\n\n";
-      });
-
-      copyToClipboard(allCode);
-    });
-
-    document.getElementById('toggleAllBtn').addEventListener('click', function () {
-      isAllCollapsed = !isAllCollapsed;
-      const wrappers = outputEl.querySelectorAll('.code-wrapper');
-      const icon = this.querySelector('.material-icons');
-
-      wrappers.forEach(w => {
-        const toggleIcon = w.querySelector('.toggle-btn .material-icons');
-        if (isAllCollapsed) {
-          w.classList.add('collapsed');
-          if (toggleIcon) toggleIcon.textContent = 'chevron_right';
-        } else {
-          w.classList.remove('collapsed');
-          if (toggleIcon) toggleIcon.textContent = 'expand_more';
-        }
-      });
-
-      icon.textContent = isAllCollapsed ? 'unfold_less' : 'unfold_more';
-    });
+    // Generate safe filename from the title input
+    function getSafeFileName(extension) {
+      let title = docTitleInput.value.trim();
+      if (!title) title = "Untitled_Document";
+      // Replace spaces and invalid characters with underscores
+      let safeTitle = title.replace(/[^a-z0-9]/gi, '_');
+      return `${safeTitle}.${extension}`;
+    }
 
     document.getElementById('clearBtn').addEventListener('click', () => {
       if (confirm("Clear everything?")) {
@@ -643,77 +688,57 @@
       }
     });
 
-    document.getElementById('exportBtn').addEventListener('click', () => {
+    // --- PDF Export Logic ---
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+      const element = document.getElementById('output');
+      
+      // Temporarily add padding for the PDF boundaries
+      const originalPadding = element.style.padding;
+      element.style.padding = '30px';
+
+      const opt = {
+        margin:       10,
+        filename:     getSafeFileName('pdf'),
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#2D2A2E' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        // Restore original styling
+        element.style.padding = originalPadding;
+      });
+    });
+
+    // --- HTML Export Logic ---
+    document.getElementById('exportHtmlBtn').addEventListener('click', () => {
       const rawMarkdown = inputEl.value;
       const htmlContent = marked.parse(rawMarkdown);
+      const title = docTitleInput.value.trim() || "Markdown Export";
 
       const styles = `
         :root {
-          --bg: #2D2A2E;
-          --sidebar: #403E41;
-          --accent-red: #FF6188;
-          --accent-orange: #FC9867;
-          --accent-yellow: #FFD866;
-          --accent-green: #A9DC76;
-          --accent-blue: #78DCE8;
-          --accent-purple: #AB9DF2;
-          --text-main: #FCFCFA;
-          --text-dim: #939293;
-          --border: rgba(255, 255, 255, 0.1);
-          --font-ui: 'Poppins', 'Hind Siliguri', sans-serif;
-          --font-code: 'JetBrains Mono', monospace;
+          --bg: #2D2A2E; --sidebar: #403E41; --accent-red: #FF6188; --accent-orange: #FC9867;
+          --accent-yellow: #FFD866; --accent-green: #A9DC76; --accent-blue: #78DCE8; --accent-purple: #AB9DF2;
+          --text-main: #FCFCFA; --text-dim: #939293; --border: rgba(255, 255, 255, 0.1);
+          --font-ui: 'Poppins', 'Hind Siliguri', sans-serif; --font-code: 'JetBrains Mono', monospace;
           --radius: 8px;
         }
-        @font-face {
-          font-family: 'Material Icons';
-          font-style: normal;
-          font-weight: 400;
-          src: url(https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/font/MaterialIcons-Regular.ttf) format('truetype');
-        }
-        .material-icons {
-          font-family: 'Material Icons';
-          font-weight: normal;
-          font-style: normal;
-          font-size: 20px;
-          display: inline-block;
-          line-height: 1;
-          text-transform: none;
-          letter-spacing: normal;
-          word-wrap: normal;
-          white-space: nowrap;
-          direction: ltr;
-          -webkit-font-smoothing: antialiased;
-          vertical-align: middle;
-        }
-        body {
-          background-color: var(--bg);
-          color: var(--text-main);
-          font-family: var(--font-ui);
-          margin: 0;
-          padding: 40px;
-        }
-        .markdown-body {
-          max-width: 900px;
-          margin: 0 auto;
-          line-height: 1.7;
-          font-size: 15px;
-        }
+        body { background-color: var(--bg); color: var(--text-main); font-family: var(--font-ui); margin: 0; padding: 40px; }
+        .markdown-body { max-width: 900px; margin: 0 auto; line-height: 1.7; font-size: 15px; }
         .markdown-body .katex { font-size: 1.15em; }
+        .mermaid { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: var(--radius); border: 1px solid var(--border); margin: 1.5em 0; text-align: center; }
         h1, h2, h3 { color: var(--accent-green); margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
         h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
         h2 { font-size: 1.5em; }
         p { margin-bottom: 1em; color: #fcfcfa; }
         a { color: var(--accent-blue); text-decoration: none; border-bottom: 1px dashed var(--accent-blue); }
-        a:hover { border-bottom-style: solid; }
-        strong { color: var(--accent-red); }
-        em { color: var(--accent-orange); }
+        strong { color: var(--accent-red); } em { color: var(--accent-orange); }
         blockquote { border-left: 4px solid var(--accent-purple); margin: 1em 0; padding-left: 1em; color: var(--text-dim); font-style: italic; }
-        ul, ol { padding-left: 20px; }
-        img { max-width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+        ul, ol { padding-left: 20px; } img { max-width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
         code:not(pre code) { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 4px; font-family: var(--font-code); font-size: 0.9em; color: var(--accent-orange); }
         table { width: 100%; border-collapse: collapse; margin: 1em 0; }
-        th, td { border: 1px solid var(--border); padding: 8px 12px; }
-        th { background: var(--sidebar); color: var(--accent-yellow); }
+        th, td { border: 1px solid var(--border); padding: 8px 12px; } th { background: var(--sidebar); color: var(--accent-yellow); }
         pre { background: #191919; border-radius: var(--radius); margin: 1.5em 0; border: 1px solid var(--border); padding: 15px; overflow-x: auto; }
         code.hljs { font-family: var(--font-code); font-size: 13px; line-height: 1.5; background: transparent !important; padding: 0 !important; }
       `;
@@ -723,23 +748,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Export</title>
+    <title>${title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai-sublime.min.css">
-    
-    <!-- KaTeX CSS for rendering Math in exported file -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    
     <style>${styles}</style>
 </head>
 <body>
     <div class="markdown-body">
         ${htmlContent}
     </div>
+    
+    <!-- Scripts to render code and math and diagrams in the exported file -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"><\/script>
-    <script>hljs.highlightAll();<\/script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"><\/script>
+    <script>
+      hljs.highlightAll();
+      mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+      
+      // Convert Mermaid code blocks to diagrams
+      const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
+      mermaidBlocks.forEach(block => {
+        const pre = block.parentElement;
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = block.textContent;
+        pre.parentNode.replaceChild(div, pre);
+      });
+      mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
+    <\/script>
 </body>
 </html>`;
 
@@ -747,7 +786,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'Export.html';
+      a.download = getSafeFileName('html');
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -756,30 +795,42 @@
 
     inputEl.addEventListener('input', debounce(render, 300));
 
-    const initialText = `# Welcome to Monokai Formatter
+    // Cleaned up placeholder highlighting all the features
+    const initialText = `# Markdown Studio Pro
 
-Paste your **Markdown** or **AI** responses on the left.
+Welcome to your live Markdown environment.
 
-## Features
-1. **Monokai Pro** Theme
-2. Auto syntax highlighting
-3. Material Icons (New!)
-4. **LaTeX Math Support** 🚀
+## 1. LaTeX Math Support
+Inline physics equation: $E = mc^2$
 
-### Math Rendering (De Morgan's Laws)
-* **প্রথম সূত্র:** $\\overline{A+B} = \\overline{A} \\cdot \\overline{B}$
-* **দ্বিতীয় সূত্র:** $\\overline{A \\cdot B} = \\overline{A} + \\overline{B}$
+Block equations (Quadratic formula):
+$$
+x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
+$$
 
-### Example Code
+## 2. Advanced Diagrams (Mermaid.js)
+You can render diagrams directly from code using \`mermaid\` blocks.
+
+\`\`\`mermaid
+graph TD;
+    A[Raw Markdown] -->|marked.js| B(HTML DOM);
+    B --> C{Processor};
+    C -->|highlight.js| D[Formatted Code];
+    C -->|KaTeX| E[Rendered Math];
+    C -->|Mermaid| F[SVG Diagrams];
+\`\`\`
+
+## 3. Code Syntax Highlighting
 
 \`\`\`javascript
-function helloWorld() {
-  console.log("Hello Monokai!");
+async function exportFeatures() {
+  const features = ["PDF", "HTML", "Math", "Diagrams"];
+  console.log(\`Enabled: \${features.join(', ')}\`);
   return true;
 }
 \`\`\`
 
-> Enjoy the clean interface!
+> Use the text input at the top to change the document title before exporting!
 `;
 
     inputEl.value = initialText;
