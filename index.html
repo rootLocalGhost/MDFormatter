@@ -239,7 +239,6 @@
       margin: 0 auto;
       line-height: 1.7;
       font-size: 15px;
-      /* Helps with PDF exporting background */
       background-color: var(--bg);
     }
 
@@ -462,7 +461,7 @@
 
     @media (max-width: 900px) {
       .title-input-container {
-        display: none; /* Hide title input on very small screens to save space */
+        display: none;
       }
     }
 
@@ -521,9 +520,8 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   
-  <!-- Math Support: KaTeX -->
+  <!-- Math Support: KaTeX (Removed marked-katex-extension in favor of custom engine) -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
 
   <!-- Diagram Support: Mermaid.js -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
@@ -547,8 +545,75 @@
       gfm: true,
     });
     
-    // Add the KaTeX extension for math
-    marked.use(markedKatex({ throwOnError: false }));
+    // --- Custom Math Parsers (Fixes the broken block math bug) ---
+    const blockMath = {
+      name: 'blockMath',
+      level: 'block',
+      start(src) { return src.indexOf('$$'); },
+      tokenizer(src) {
+        // Matches $$ multiline blocks perfectly
+        const match = /^\$\$([\s\S]+?)\$\$/.exec(src);
+        if (match) {
+          return {
+            type: 'blockMath',
+            raw: match[0],
+            text: match[1].trim()
+          };
+        }
+      },
+      renderer(token) {
+        try {
+          return `<div class="katex-block" style="text-align: center; margin: 1.5em 0; overflow-x: auto;">` +
+            katex.renderToString(token.text, { displayMode: true, throwOnError: false }) +
+            `</div>`;
+        } catch (e) { return `<div style="color:red">Math Error</div>`; }
+      }
+    };
+
+    const inlineBlockMath = {
+      name: 'inlineBlockMath',
+      level: 'inline',
+      start(src) { return src.indexOf('$$'); },
+      tokenizer(src) {
+        // Fallback for $$ blocks embedded inside paragraphs
+        const match = /^\$\$([\s\S]+?)\$\$/.exec(src);
+        if (match) {
+          return {
+            type: 'inlineBlockMath',
+            raw: match[0],
+            text: match[1].trim()
+          };
+        }
+      },
+      renderer(token) {
+        return `<span class="katex-block">` +
+          katex.renderToString(token.text, { displayMode: true, throwOnError: false }) +
+          `</span>`;
+      }
+    };
+
+    const inlineMath = {
+      name: 'inlineMath',
+      level: 'inline',
+      start(src) { return src.indexOf('$'); },
+      tokenizer(src) {
+        // Matches $...$ without breaking when isolated $ symbols exist
+        const match = /^\$([^\s$](?:[^$]*?[^\s$])?)\$/.exec(src);
+        if (match) {
+          return {
+            type: 'inlineMath',
+            raw: match[0],
+            text: match[1].trim()
+          };
+        }
+      },
+      renderer(token) {
+        return katex.renderToString(token.text, { displayMode: false, throwOnError: false });
+      }
+    };
+
+    // Inject our bulletproof math engine into Marked
+    marked.use({ extensions: [blockMath, inlineBlockMath, inlineMath] });
 
     function debounce(func, wait) {
       let timeout;
@@ -578,11 +643,9 @@
         const mermaidDiv = document.createElement('div');
         mermaidDiv.className = 'mermaid';
         mermaidDiv.textContent = block.textContent;
-        // Replace the <pre> block entirely with the diagram container
         pre.parentNode.replaceChild(mermaidDiv, pre);
       });
 
-      // Render the diagrams
       try {
         if (mermaidBlocks.length > 0) {
           await mermaid.run({ nodes: outputEl.querySelectorAll('.mermaid') });
@@ -654,7 +717,6 @@
         });
       });
 
-      // Make links open in new tab
       outputEl.querySelectorAll('a').forEach(a => a.target = '_blank');
     }
 
@@ -672,11 +734,9 @@
       setTimeout(() => toastEl.classList.remove('show'), 2000);
     }
 
-    // Generate safe filename from the title input
     function getSafeFileName(extension) {
       let title = docTitleInput.value.trim();
       if (!title) title = "Untitled_Document";
-      // Replace spaces and invalid characters with underscores
       let safeTitle = title.replace(/[^a-z0-9]/gi, '_');
       return `${safeTitle}.${extension}`;
     }
@@ -692,7 +752,6 @@
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
       const element = document.getElementById('output');
       
-      // Temporarily add padding for the PDF boundaries
       const originalPadding = element.style.padding;
       element.style.padding = '30px';
 
@@ -705,7 +764,6 @@
       };
 
       html2pdf().set(opt).from(element).save().then(() => {
-        // Restore original styling
         element.style.padding = originalPadding;
       });
     });
@@ -761,14 +819,12 @@
         ${htmlContent}
     </div>
     
-    <!-- Scripts to render code and math and diagrams in the exported file -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"><\/script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"><\/script>
     <script>
       hljs.highlightAll();
       mermaid.initialize({ startOnLoad: false, theme: 'dark' });
       
-      // Convert Mermaid code blocks to diagrams
       const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
       mermaidBlocks.forEach(block => {
         const pre = block.parentElement;
@@ -795,26 +851,26 @@
 
     inputEl.addEventListener('input', debounce(render, 300));
 
-    // Cleaned up placeholder highlighting all the features
     const initialText = `# Markdown Studio Pro
 
 Welcome to your live Markdown environment.
 
 ## 1. LaTeX Math Support
-Inline physics equation: $E = mc^2$
 
-Block equations (Quadratic formula):
+The multi-line block equation renderer has been fixed and is fully operational!
+
 $$
 x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
 $$
 
+Inline physics equations also work flawlessly: $E = mc^2$
+
 ## 2. Advanced Diagrams (Mermaid.js)
-You can render diagrams directly from code using \`mermaid\` blocks.
 
 \`\`\`mermaid
 graph TD;
     A[Raw Markdown] -->|marked.js| B(HTML DOM);
-    B --> C{Processor};
+    B --> C{Custom Parsers};
     C -->|highlight.js| D[Formatted Code];
     C -->|KaTeX| E[Rendered Math];
     C -->|Mermaid| F[SVG Diagrams];
@@ -829,8 +885,6 @@ async function exportFeatures() {
   return true;
 }
 \`\`\`
-
-> Use the text input at the top to change the document title before exporting!
 `;
 
     inputEl.value = initialText;
