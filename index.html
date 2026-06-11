@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Markdown Formatter</title>
+  <title>Markdown & Math Formatter</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,9 @@
 
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai-sublime.min.css">
+    
+  <!-- KaTeX CSS for rendering Math -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 
   <style>
     :root {
@@ -209,6 +212,11 @@
       margin: 0 auto;
       line-height: 1.7;
       font-size: 15px;
+    }
+
+    /* Math specific styling tweaks */
+    .markdown-body .katex {
+      font-size: 1.15em;
     }
 
     .markdown-body h1,
@@ -476,8 +484,14 @@
 
   <div id="toast"><span class="material-icons">check_circle</span> Copied to clipboard!</div>
 
+  <!-- Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  
+  <!-- KaTeX JS for Math support -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <!-- Marked Extension for KaTeX -->
+  <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
 
   <script>
     const inputEl = document.getElementById('input');
@@ -485,10 +499,14 @@
     const toastEl = document.getElementById('toast');
     let isAllCollapsed = false;
 
+    // Initialize Marked options
     marked.setOptions({
       breaks: true,
       gfm: true,
     });
+    
+    // Add the KaTeX extension to marked so it parses Math safely before Markdown
+    marked.use(markedKatex({ throwOnError: false }));
 
     function debounce(func, wait) {
       let timeout;
@@ -509,6 +527,9 @@
       const blocks = outputEl.querySelectorAll('pre code');
 
       blocks.forEach((block, index) => {
+        // Skip rendering wrapper if already processed
+        if(block.parentElement.parentElement.classList.contains('code-wrapper')) return;
+
         hljs.highlightElement(block);
 
         let lang = 'Text';
@@ -544,7 +565,6 @@
         wrapper.appendChild(pre);
 
         const copyBtn = header.querySelector('.copy-btn');
-        const copyIcon = copyBtn.querySelector('.material-icons');
         const toggleBtn = header.querySelector('.toggle-btn');
         const toggleIcon = toggleBtn.querySelector('.material-icons');
 
@@ -678,6 +698,7 @@
           line-height: 1.7;
           font-size: 15px;
         }
+        .markdown-body .katex { font-size: 1.15em; }
         h1, h2, h3 { color: var(--accent-green); margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
         h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
         h2 { font-size: 1.5em; }
@@ -697,8 +718,7 @@
         code.hljs { font-family: var(--font-code); font-size: 13px; line-height: 1.5; background: transparent !important; padding: 0 !important; }
       `;
 
-      const fullHtml = `
-<!DOCTYPE html>
+      const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -708,6 +728,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai-sublime.min.css">
+    
+    <!-- KaTeX CSS for rendering Math in exported file -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    
     <style>${styles}</style>
 </head>
 <body>
@@ -740,7 +764,11 @@ Paste your **Markdown** or **AI** responses on the left.
 1. **Monokai Pro** Theme
 2. Auto syntax highlighting
 3. Material Icons (New!)
-4. Smooth Animations
+4. **LaTeX Math Support** 🚀
+
+### Math Rendering (De Morgan's Laws)
+* **প্রথম সূত্র:** $\\overline{A+B} = \\overline{A} \\cdot \\overline{B}$
+* **দ্বিতীয় সূত্র:** $\\overline{A \\cdot B} = \\overline{A} + \\overline{B}$
 
 ### Example Code
 
