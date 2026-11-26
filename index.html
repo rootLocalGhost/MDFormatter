@@ -121,36 +121,51 @@
       font-size: 24px;
     }
 
-    .title-input-container {
+    .document-name {
       display: flex;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: var(--radius);
-      padding: 4px 12px;
-      border: 1px solid var(--border);
-      flex: 0 1 300px;
+      flex: 1 1 240px;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 320px;
+      min-width: 190px;
     }
 
-    .title-input-container input {
-      background: transparent;
-      border: none;
+    .document-name label {
+      padding-left: 2px;
+      color: var(--text-dim);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .document-name input {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.2);
       color: var(--text-main);
       font-family: var(--font-ui);
-      font-size: 14px;
-      width: 100%;
+      font-size: 12px;
+      transition: border-color var(--anim-speed) ease, background var(--anim-speed) ease;
     }
 
-    .title-input-container input::placeholder {
+    .document-name input::placeholder {
       color: var(--text-dim);
     }
 
-    .title-input-container:focus-within {
+    .document-name input:focus {
       border-color: var(--accent-blue);
+      background: rgba(0, 0, 0, 0.28);
     }
 
     .controls {
       display: flex;
       gap: 8px;
+      align-items: center;
     }
 
     .btn {
@@ -170,6 +185,29 @@
 
     .btn .material-icons {
       font-size: 16px;
+    }
+
+    .export-html-btn {
+      gap: 4px;
+      padding-right: 9px;
+      padding-left: 9px;
+    }
+
+    .export-html-icon {
+      display: block;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
     }
 
     .btn:hover {
@@ -193,6 +231,20 @@
     .btn.danger:hover {
       border-color: var(--accent-red);
       color: var(--accent-red);
+    }
+
+    .editor-status {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 11px;
+    }
+
+    .editor-status span:last-child {
+      white-space: nowrap;
     }
 
     main {
@@ -459,13 +511,58 @@
       opacity: 1;
     }
 
+    #toast.error {
+      background: var(--accent-red);
+      color: var(--text-main);
+    }
+
     @media (max-width: 900px) {
-      .title-input-container {
-        display: none;
+      header {
+        height: auto;
+        min-height: 60px;
+        flex-wrap: wrap;
+        padding: 8px 16px;
+        row-gap: 6px;
+      }
+      .brand {
+        order: 1;
+      }
+      .controls {
+        order: 2;
+        margin-left: auto;
+      }
+      .document-name {
+        order: 3;
+        flex: 1 0 100%;
+        max-width: none;
+        min-width: 0;
+      }
+      main {
+        height: auto;
+        min-height: 0;
       }
     }
 
     @media (max-width: 768px) {
+      header {
+        height: auto;
+        min-height: 60px;
+        padding: 8px 12px;
+        gap: 6px;
+      }
+      .controls {
+        gap: 4px;
+      }
+      .controls .btn {
+        padding: 6px 8px;
+      }
+      .controls .btn.export-html-btn {
+        padding-right: 7px;
+        padding-left: 7px;
+      }
+      .controls .btn .btn-label {
+        display: none;
+      }
       main {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
@@ -492,21 +589,29 @@
       <span>Markdown Studio</span>
     </div>
     
-    <div class="title-input-container" title="This title is used for HTML and PDF exports">
-      <span class="material-icons" style="font-size: 16px; margin-right: 8px; color: var(--text-dim)">edit_document</span>
-      <input type="text" id="docTitle" placeholder="Document Title..." value="My_Document">
+    <div class="document-name">
+      <label for="docTitle">Document name</label>
+      <input type="text" id="docTitle" placeholder="Enter a document name" value="My_Document" aria-describedby="documentNameHint">
+      <span id="documentNameHint" class="visually-hidden">Used as the filename for exported documents.</span>
     </div>
 
     <div class="controls">
-      <button class="btn danger" id="clearBtn" title="Clear Input"><span class="material-icons">delete</span></button>
-      <button class="btn" id="exportPdfBtn" title="Export as PDF"><span class="material-icons">picture_as_pdf</span> PDF</button>
-      <button class="btn" id="exportHtmlBtn" title="Export as HTML"><span class="material-icons">html</span> HTML</button>
+      <button class="btn danger" id="clearBtn" title="Clear input" aria-label="Clear input"><span class="material-icons">delete</span></button>
+      <button class="btn" id="exportPdfBtn" title="Export as PDF" aria-label="Export as PDF"><span class="material-icons">picture_as_pdf</span><span class="btn-label">PDF</span></button>
+      <button class="btn export-html-btn" id="exportHtmlBtn" title="Export as HTML" aria-label="Export as HTML"><svg class="export-html-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 16 4 12l4-4 1.4 1.4L6.8 12l2.6 2.6L8 16Zm8 0-1.4-1.4 2.6-2.6-2.6-2.6L16 8l4 4-4 4Zm-2-12-3.5 16h-2L12 4h2Z"/></svg><span class="btn-label">HTML</span></button>
+      <button class="btn" id="exportTxtBtn" title="Export as plain text" aria-label="Export as plain text"><span class="material-icons">text_snippet</span><span class="btn-label">TXT</span></button>
+      <button class="btn" id="exportDocxBtn" title="Export as Word document" aria-label="Export as Word document"><span class="material-icons">description</span><span class="btn-label">DOCX</span></button>
+      <button class="btn" id="exportMdBtn" title="Download Markdown source" aria-label="Download Markdown source"><span class="material-icons">code</span><span class="btn-label">MD</span></button>
     </div>
   </header>
 
   <main class="animate__animated animate__fadeIn">
     <div class="editor-container">
-      <textarea id="input" placeholder="Paste your messy Markdown or AI response here..."></textarea>
+      <textarea id="input" placeholder="Paste your messy Markdown or AI response here..." aria-label="Markdown editor" spellcheck="false"></textarea>
+      <div class="editor-status" aria-live="polite">
+        <span id="documentStats">0 words · 0 characters</span>
+        <span id="saveStatus">Ready</span>
+      </div>
     </div>
 
     <div class="preview-container">
@@ -514,7 +619,7 @@
     </div>
   </main>
 
-  <div id="toast"><span class="material-icons">check_circle</span> Copied to clipboard!</div>
+  <div id="toast" role="status" aria-live="polite"><span class="material-icons">check_circle</span><span data-toast-message>Copied to clipboard!</span></div>
 
   <!-- Core Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -528,13 +633,19 @@
 
   <!-- PDF Support: html2pdf -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- DOCX Support -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 
   <script>
     const inputEl = document.getElementById('input');
     const outputEl = document.getElementById('output');
     const toastEl = document.getElementById('toast');
+    const toastMessageEl = toastEl.querySelector('[data-toast-message]');
     const docTitleInput = document.getElementById('docTitle');
-    let isAllCollapsed = false;
+    const documentStatsEl = document.getElementById('documentStats');
+    const saveStatusEl = document.getElementById('saveStatus');
+    const draftStorageKey = 'markdown-studio-draft';
+    let toastTimeout;
 
     // Initialize Diagram Config
     mermaid.initialize({ startOnLoad: false, theme: 'dark' });
@@ -617,17 +728,68 @@
 
     function debounce(func, wait) {
       let timeout;
-      return function (...args) {
+      const debounced = function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
       };
+      debounced.cancel = () => {
+        clearTimeout(timeout);
+        timeout = null;
+      };
+      return debounced;
     }
 
     async function render() {
       const rawMarkdown = inputEl.value;
       const html = marked.parse(rawMarkdown);
       outputEl.innerHTML = html;
+      updateDocumentStats(rawMarkdown);
       await postProcess();
+      lastRenderedMarkdown = rawMarkdown;
+    }
+
+    let lastRenderedMarkdown = null;
+    const renderDebounced = debounce(render, 300);
+
+    async function ensureRendered() {
+      if (lastRenderedMarkdown !== inputEl.value) {
+        renderDebounced.cancel();
+        await render();
+      }
+    }
+
+    function updateDocumentStats(text) {
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      documentStatsEl.textContent = `${words.toLocaleString()} words · ${text.length.toLocaleString()} characters`;
+    }
+
+    function saveDraft() {
+      try {
+        localStorage.setItem(draftStorageKey, JSON.stringify({
+          markdown: inputEl.value,
+          title: docTitleInput.value
+        }));
+        saveStatusEl.textContent = 'Saved locally';
+      } catch (error) {
+        console.error('Unable to save draft locally:', error);
+        saveStatusEl.textContent = 'Local save unavailable';
+      }
+    }
+
+    function restoreDraft() {
+      try {
+        const savedDraft = localStorage.getItem(draftStorageKey);
+        if (!savedDraft) return false;
+        const draft = JSON.parse(savedDraft);
+        if (typeof draft.markdown !== 'string' || typeof draft.title !== 'string') return false;
+        inputEl.value = draft.markdown;
+        docTitleInput.value = draft.title;
+        return true;
+      } catch (error) {
+        console.error('Unable to restore saved draft:', error);
+        saveStatusEl.textContent = 'Unable to restore draft';
+        return false;
+      }
     }
 
     async function postProcess() {
@@ -675,26 +837,26 @@
         const header = document.createElement('div');
         header.className = 'code-header';
 
-        header.innerHTML = `
-            <div class="lang-tag">
-                ${lang}
-            </div>
-            <div class="code-actions">
-                <button class="action-btn toggle-btn" title="Collapse">
-                    <span class="material-icons">expand_more</span>
-                </button>
-                <button class="action-btn copy-btn" title="Copy Code">
-                    <span class="material-icons">content_copy</span> Copy
-                </button>
-            </div>
-        `;
+        const langLabel = document.createElement('div');
+        langLabel.className = 'lang-tag';
+        langLabel.textContent = lang;
+        const actions = document.createElement('div');
+        actions.className = 'code-actions';
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'action-btn toggle-btn';
+        toggleBtn.title = 'Collapse';
+        toggleBtn.innerHTML = '<span class="material-icons">expand_more</span>';
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'action-btn copy-btn';
+        copyBtn.title = 'Copy Code';
+        copyBtn.innerHTML = '<span class="material-icons">content_copy</span> Copy';
+        actions.append(toggleBtn, copyBtn);
+        header.append(langLabel, actions);
 
         pre.parentNode.insertBefore(wrapper, pre);
         wrapper.appendChild(header);
         wrapper.appendChild(pre);
 
-        const copyBtn = header.querySelector('.copy-btn');
-        const toggleBtn = header.querySelector('.toggle-btn');
         const toggleIcon = toggleBtn.querySelector('.material-icons');
 
         copyBtn.addEventListener('click', () => {
@@ -726,130 +888,308 @@
         showToast();
       } catch (err) {
         console.error('Failed to copy!', err);
+        showToast('Could not copy to clipboard.', true);
       }
     }
 
-    function showToast() {
+    function showToast(message = 'Copied to clipboard!', isError = false) {
+      toastMessageEl.textContent = message;
+      toastEl.querySelector('.material-icons').textContent = isError ? 'error' : 'check_circle';
+      toastEl.classList.toggle('error', isError);
       toastEl.classList.add('show');
-      setTimeout(() => toastEl.classList.remove('show'), 2000);
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2400);
     }
 
     function getSafeFileName(extension) {
-      let title = docTitleInput.value.trim();
-      if (!title) title = "Untitled_Document";
-      let safeTitle = title.replace(/[^a-z0-9]/gi, '_');
+      const title = docTitleInput.value.trim().normalize('NFKD');
+      const safeTitle = title
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9_-]+/gi, '_')
+        .replace(/^_+|_+$/g, '') || 'Untitled_Document';
       return `${safeTitle}.${extension}`;
+    }
+
+    function downloadFile(content, type, extension) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = getSafeFileName(extension);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     document.getElementById('clearBtn').addEventListener('click', () => {
       if (confirm("Clear everything?")) {
         inputEl.value = '';
+        saveDraft();
         render();
       }
     });
 
-    // --- PDF Export Logic ---
-    document.getElementById('exportPdfBtn').addEventListener('click', () => {
-      const element = document.getElementById('output');
-      
-      const originalPadding = element.style.padding;
-      element.style.padding = '30px';
-
-      const opt = {
-        margin:       10,
-        filename:     getSafeFileName('pdf'),
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#2D2A2E' },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opt).from(element).save().then(() => {
-        element.style.padding = originalPadding;
+    function prepareExportContent() {
+      const content = outputEl.cloneNode(true);
+      content.querySelectorAll('.code-actions').forEach(actions => actions.remove());
+      content.querySelectorAll('.code-wrapper').forEach(wrapper => wrapper.classList.remove('collapsed'));
+      content.querySelectorAll('[class*="animate__"]').forEach(element => {
+        element.className = Array.from(element.classList)
+          .filter(className => !className.startsWith('animate__'))
+          .join(' ');
       });
-    });
+      return content;
+    }
 
-    // --- HTML Export Logic ---
-    document.getElementById('exportHtmlBtn').addEventListener('click', () => {
-      const rawMarkdown = inputEl.value;
-      const htmlContent = marked.parse(rawMarkdown);
-      const title = docTitleInput.value.trim() || "Markdown Export";
+    document.getElementById('exportPdfBtn').addEventListener('click', async () => {
+      const button = document.getElementById('exportPdfBtn');
+      button.disabled = true;
+      try {
+        if (typeof html2pdf !== 'function') throw new Error('The PDF export library did not load.');
+        await ensureRendered();
+        if (document.fonts?.ready) await document.fonts.ready;
 
-      const styles = `
-        :root {
-          --bg: #2D2A2E; --sidebar: #403E41; --accent-red: #FF6188; --accent-orange: #FC9867;
-          --accent-yellow: #FFD866; --accent-green: #A9DC76; --accent-blue: #78DCE8; --accent-purple: #AB9DF2;
-          --text-main: #FCFCFA; --text-dim: #939293; --border: rgba(255, 255, 255, 0.1);
-          --font-ui: 'Poppins', 'Hind Siliguri', sans-serif; --font-code: 'JetBrains Mono', monospace;
-          --radius: 8px;
+        const exportRoot = document.createElement('div');
+        exportRoot.id = 'pdfExportRoot';
+        exportRoot.className = 'markdown-body';
+        exportRoot.appendChild(prepareExportContent());
+        exportRoot.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;padding:24px;background:#fff;color:#202124;z-index:-1;';
+
+        const exportStyles = document.createElement('style');
+        exportStyles.textContent = `
+          #pdfExportRoot { font: 14px Arial, sans-serif; line-height: 1.55; }
+          #pdfExportRoot h1, #pdfExportRoot h2, #pdfExportRoot h3 { color: #202124; page-break-after: avoid; }
+          #pdfExportRoot p, #pdfExportRoot li, #pdfExportRoot blockquote { color: #202124; }
+          #pdfExportRoot a { color: #1256a0; }
+          #pdfExportRoot .code-wrapper, #pdfExportRoot pre { background: #f3f4f6; border: 1px solid #d5d8dc; }
+          #pdfExportRoot .code-header { background: #e8eaed; color: #333; }
+          #pdfExportRoot table { border-collapse: collapse; width: 100%; }
+          #pdfExportRoot th, #pdfExportRoot td { border: 1px solid #aaa; color: #202124; }
+          #pdfExportRoot img, #pdfExportRoot svg, #pdfExportRoot table, #pdfExportRoot pre, #pdfExportRoot .katex-block { max-width: 100%; page-break-inside: avoid; }
+          #pdfExportRoot .code-actions { display: none; }
+        `;
+        document.head.appendChild(exportStyles);
+        document.body.appendChild(exportRoot);
+        try {
+          await html2pdf().set({
+            margin: [12, 12, 14, 12],
+            filename: getSafeFileName('pdf'),
+            image: { type: 'jpeg', quality: 0.96 },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+            pagebreak: { mode: ['css', 'legacy'], avoid: ['pre', 'table', 'img', '.katex-block'] }
+          }).from(exportRoot).save();
+        } finally {
+          exportRoot.remove();
+          exportStyles.remove();
         }
-        body { background-color: var(--bg); color: var(--text-main); font-family: var(--font-ui); margin: 0; padding: 40px; }
-        .markdown-body { max-width: 900px; margin: 0 auto; line-height: 1.7; font-size: 15px; }
-        .markdown-body .katex { font-size: 1.15em; }
-        .mermaid { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: var(--radius); border: 1px solid var(--border); margin: 1.5em 0; text-align: center; }
-        h1, h2, h3 { color: var(--accent-green); margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
-        h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
-        h2 { font-size: 1.5em; }
-        p { margin-bottom: 1em; color: #fcfcfa; }
-        a { color: var(--accent-blue); text-decoration: none; border-bottom: 1px dashed var(--accent-blue); }
-        strong { color: var(--accent-red); } em { color: var(--accent-orange); }
-        blockquote { border-left: 4px solid var(--accent-purple); margin: 1em 0; padding-left: 1em; color: var(--text-dim); font-style: italic; }
-        ul, ol { padding-left: 20px; } img { max-width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
-        code:not(pre code) { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 4px; font-family: var(--font-code); font-size: 0.9em; color: var(--accent-orange); }
-        table { width: 100%; border-collapse: collapse; margin: 1em 0; }
-        th, td { border: 1px solid var(--border); padding: 8px 12px; } th { background: var(--sidebar); color: var(--accent-yellow); }
-        pre { background: #191919; border-radius: var(--radius); margin: 1.5em 0; border: 1px solid var(--border); padding: 15px; overflow-x: auto; }
-        code.hljs { font-family: var(--font-code); font-size: 13px; line-height: 1.5; background: transparent !important; padding: 0 !important; }
-      `;
-
-      const fullHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai-sublime.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <style>${styles}</style>
-</head>
-<body>
-    <div class="markdown-body">
-        ${htmlContent}
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"><\/script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"><\/script>
-    <script>
-      hljs.highlightAll();
-      mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-      
-      const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
-      mermaidBlocks.forEach(block => {
-        const pre = block.parentElement;
-        const div = document.createElement('div');
-        div.className = 'mermaid';
-        div.textContent = block.textContent;
-        pre.parentNode.replaceChild(div, pre);
-      });
-      mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
-    <\/script>
-</body>
-</html>`;
-
-      const blob = new Blob([fullHtml], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = getSafeFileName('html');
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        showToast('PDF exported successfully.');
+      } catch (error) {
+        console.error('PDF export failed:', error);
+        showToast(error.message || 'PDF export failed.', true);
+      } finally {
+        button.disabled = false;
+      }
     });
 
-    inputEl.addEventListener('input', debounce(render, 300));
+    document.getElementById('exportHtmlBtn').addEventListener('click', async () => {
+      await ensureRendered();
+      const content = prepareExportContent();
+      const title = docTitleInput.value.trim() || 'Markdown Export';
+      const escapedTitle = title.replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[character]);
+      const styles = `
+        body { background: #2D2A2E; color: #FCFCFA; font: 15px Arial, sans-serif; margin: 0; padding: 40px; }
+        .markdown-body { max-width: 900px; margin: auto; line-height: 1.7; }
+        h1, h2, h3 { color: #A9DC76; } h1 { border-bottom: 1px solid #666; padding-bottom: .3em; }
+        a { color: #78DCE8; } blockquote { border-left: 4px solid #AB9DF2; padding-left: 1em; }
+        img, svg { max-width: 100%; } table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #777; padding: 8px 12px; }
+        pre, .code-wrapper { background: #191919; border: 1px solid #555; border-radius: 8px; padding: 12px; overflow-x: auto; }
+        .code-header { color: #78DCE8; font: 12px Arial, sans-serif; padding-bottom: 6px; }
+        .lang-tag { text-transform: uppercase; } .code-actions { display: none; }
+        .markdown-body .katex { font-size: 1.15em; }
+      `;
+      const fullHtml = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapedTitle}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai-sublime.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>${styles}</style></head><body><main class="markdown-body">${content.innerHTML}</main></body></html>`;
+      downloadFile(fullHtml, 'text/html;charset=utf-8', 'html');
+      showToast('HTML exported successfully.');
+    });
+
+    document.getElementById('exportTxtBtn').addEventListener('click', async () => {
+      await ensureRendered();
+      const exportContent = prepareExportContent();
+      exportContent.style.cssText = 'position:fixed;left:-10000px;top:0;';
+      document.body.appendChild(exportContent);
+      let plainText;
+      try {
+        plainText = (exportContent.innerText || exportContent.textContent || '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+      } finally {
+        exportContent.remove();
+      }
+      downloadFile(plainText ? `${plainText}\n` : '', 'text/plain;charset=utf-8', 'txt');
+      showToast('Plain text exported successfully.');
+    });
+
+    document.getElementById('exportMdBtn').addEventListener('click', () => {
+      downloadFile(inputEl.value, 'text/markdown;charset=utf-8', 'md');
+      showToast('Markdown source downloaded.');
+    });
+
+    function inlineRuns(tokens, inherited = {}) {
+      const { TextRun } = docx;
+      const runs = [];
+      (tokens || []).forEach(token => {
+        const options = { ...inherited };
+        if (token.type === 'strong') options.bold = true;
+        if (token.type === 'em') options.italics = true;
+        if (token.type === 'del') options.strike = true;
+        if (token.type === 'link') {
+          options.color = '0563C1';
+          options.underline = {};
+        }
+        if (token.type === 'codespan') {
+          options.font = 'Consolas';
+          options.shading = { fill: 'EEEEEE' };
+        }
+        if (token.type === 'br') {
+          runs.push(new TextRun({ text: '', break: 1 }));
+        } else if (token.tokens?.length) {
+          runs.push(...inlineRuns(token.tokens, options));
+        } else {
+          const text = token.text ?? token.raw ?? '';
+          if (text) runs.push(new TextRun({ text: text.replace(/<[^>]*>/g, ''), ...options }));
+        }
+      });
+      return runs.length ? runs : [new TextRun('')];
+    }
+
+    function docxBlocks(tokens, depth = 0) {
+      const { Paragraph, Table, TableRow, TableCell, HeadingLevel, WidthType, ShadingType } = docx;
+      const blocks = [];
+      (tokens || []).forEach(token => {
+        if (token.type === 'space' || token.type === 'def') return;
+        if (token.type === 'heading') {
+          const heading = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
+            HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6][token.depth - 1];
+          blocks.push(new Paragraph({ heading: heading || HeadingLevel.HEADING_1, children: inlineRuns(token.tokens) }));
+        } else if (token.type === 'paragraph' || token.type === 'text') {
+          blocks.push(new Paragraph({ children: inlineRuns(token.tokens || [{ text: token.text || '' }]) }));
+        } else if (token.type === 'blockquote') {
+          (token.tokens || []).forEach(child => {
+            if (child.type === 'paragraph' || child.type === 'text') {
+              blocks.push(new Paragraph({
+                children: inlineRuns(child.tokens || [{ text: child.text || '' }]),
+                indent: { left: 360 },
+                style: 'Quote'
+              }));
+            } else {
+              blocks.push(...docxBlocks([child], depth));
+            }
+          });
+        } else if (token.type === 'code') {
+          const codeRuns = (token.text || '').split('\n').map((line, index) => {
+            const run = { text: line, font: 'Consolas', size: 18 };
+            if (index < token.text.split('\n').length - 1) run.break = 1;
+            return new docx.TextRun(run);
+          });
+          blocks.push(new Paragraph({ children: codeRuns, shading: { type: ShadingType.CLEAR, fill: 'F1F3F5' }, spacing: { before: 120, after: 120 } }));
+        } else if (token.type === 'list') {
+          token.items.forEach(item => {
+            const nested = (item.tokens || []).filter(child => child.type === 'list');
+            const inline = (item.tokens || []).filter(child => child.type !== 'list' && child.type !== 'space');
+            const runs = inline.flatMap(child => child.tokens?.length ? inlineRuns(child.tokens) : inlineRuns([{ text: child.text || '' }]));
+            if (item.task) runs.unshift(new docx.TextRun({ text: item.checked ? '[x] ' : '[ ] ' }));
+            const paragraphOptions = token.ordered
+              ? { numbering: { reference: 'markdown-numbers', level: Math.min(depth, 4) } }
+              : { bullet: { indent: 360 + depth * 360 } };
+            blocks.push(new Paragraph({ children: runs, ...paragraphOptions }));
+            nested.forEach(child => blocks.push(...docxBlocks([child], depth + 1)));
+          });
+        } else if (token.type === 'table') {
+          const rows = [token.header, ...(token.rows || [])].map((row, rowIndex) =>
+            new TableRow({
+              children: row.map(cell => new TableCell({
+                width: { size: Math.floor(100 / row.length), type: WidthType.PERCENTAGE },
+                shading: rowIndex === 0 ? { type: ShadingType.CLEAR, fill: 'E8EEF7' } : undefined,
+                children: [new Paragraph({ children: inlineRuns(cell.tokens || [{ text: cell.text || '' }]) })]
+              }))
+            })
+          );
+          blocks.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+        } else if (token.type === 'hr') {
+          blocks.push(new Paragraph({ text: '', border: { bottom: { color: '999999', style: 'single', size: 4 } } }));
+        } else if (token.type === 'html') {
+          const text = (token.text || '').replace(/<[^>]*>/g, ' ').trim();
+          if (text) blocks.push(new Paragraph({ text }));
+        }
+      });
+      return blocks;
+    }
+
+    document.getElementById('exportDocxBtn').addEventListener('click', async () => {
+      const button = document.getElementById('exportDocxBtn');
+      button.disabled = true;
+      try {
+        if (!window.docx) throw new Error('The Word export library did not load.');
+        const paragraphs = docxBlocks(marked.lexer(inputEl.value));
+        const doc = new docx.Document({
+          numbering: {
+            config: [{
+              reference: 'markdown-numbers',
+              levels: Array.from({ length: 5 }, (_, level) => ({
+                level,
+                format: 'decimal',
+                text: `%${level + 1}.`,
+                alignment: 'left',
+                style: { paragraph: { indent: { left: 720 + level * 360, hanging: 260 } } }
+              }))
+            }]
+          },
+          sections: [{
+            properties: {},
+            children: [
+              new docx.Paragraph({
+                children: [new docx.TextRun({ text: docTitleInput.value.trim() || 'Markdown Export', bold: true, size: 36 })],
+                spacing: { after: 300 }
+              }),
+              ...(paragraphs.length ? paragraphs : [new docx.Paragraph('')])
+            ]
+          }]
+        });
+        const blob = await docx.Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = getSafeFileName('docx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Word document exported successfully.');
+      } catch (error) {
+        console.error('DOCX export failed:', error);
+        showToast(error.message || 'DOCX export failed.', true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    const saveDraftDebounced = debounce(saveDraft, 400);
+    inputEl.addEventListener('input', () => {
+      updateDocumentStats(inputEl.value);
+      renderDebounced();
+      saveDraftDebounced();
+    });
+    docTitleInput.addEventListener('input', saveDraftDebounced);
 
     const initialText = `# Markdown Studio Pro
 
@@ -887,8 +1227,9 @@ async function exportFeatures() {
 \`\`\`
 `;
 
-    inputEl.value = initialText;
+    if (!restoreDraft()) inputEl.value = initialText;
     render();
+    saveDraft();
   </script>
 </body>
 
