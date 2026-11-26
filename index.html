@@ -121,31 +121,45 @@
       font-size: 24px;
     }
 
-    .title-input-container {
+    .document-name {
       display: flex;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: var(--radius);
-      padding: 4px 12px;
-      border: 1px solid var(--border);
-      flex: 0 1 300px;
+      flex: 1 1 240px;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 320px;
+      min-width: 190px;
     }
 
-    .title-input-container input {
-      background: transparent;
-      border: none;
+    .document-name label {
+      padding-left: 2px;
+      color: var(--text-dim);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .document-name input {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.2);
       color: var(--text-main);
       font-family: var(--font-ui);
-      font-size: 14px;
-      width: 100%;
+      font-size: 12px;
+      transition: border-color var(--anim-speed) ease, background var(--anim-speed) ease;
     }
 
-    .title-input-container input::placeholder {
+    .document-name input::placeholder {
       color: var(--text-dim);
     }
 
-    .title-input-container:focus-within {
+    .document-name input:focus {
       border-color: var(--accent-blue);
+      background: rgba(0, 0, 0, 0.28);
     }
 
     .controls {
@@ -171,6 +185,29 @@
 
     .btn .material-icons {
       font-size: 16px;
+    }
+
+    .export-html-btn {
+      gap: 4px;
+      padding-right: 9px;
+      padding-left: 9px;
+    }
+
+    .export-html-icon {
+      display: block;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
     }
 
     .btn:hover {
@@ -480,8 +517,29 @@
     }
 
     @media (max-width: 900px) {
-      .title-input-container {
-        display: none;
+      header {
+        height: auto;
+        min-height: 60px;
+        flex-wrap: wrap;
+        padding: 8px 16px;
+        row-gap: 6px;
+      }
+      .brand {
+        order: 1;
+      }
+      .controls {
+        order: 2;
+        margin-left: auto;
+      }
+      .document-name {
+        order: 3;
+        flex: 1 0 100%;
+        max-width: none;
+        min-width: 0;
+      }
+      main {
+        height: auto;
+        min-height: 0;
       }
     }
 
@@ -490,13 +548,17 @@
         height: auto;
         min-height: 60px;
         padding: 8px 12px;
-        gap: 8px;
+        gap: 6px;
       }
       .controls {
         gap: 4px;
       }
       .controls .btn {
         padding: 6px 8px;
+      }
+      .controls .btn.export-html-btn {
+        padding-right: 7px;
+        padding-left: 7px;
       }
       .controls .btn .btn-label {
         display: none;
@@ -527,15 +589,16 @@
       <span>Markdown Studio</span>
     </div>
     
-    <div class="title-input-container" title="This title is used for exported files">
-      <span class="material-icons" style="font-size: 16px; margin-right: 8px; color: var(--text-dim)">edit_document</span>
-      <input type="text" id="docTitle" placeholder="Document Title..." value="My_Document" aria-label="Document title">
+    <div class="document-name">
+      <label for="docTitle">Document name</label>
+      <input type="text" id="docTitle" placeholder="Enter a document name" value="My_Document" aria-describedby="documentNameHint">
+      <span id="documentNameHint" class="visually-hidden">Used as the filename for exported documents.</span>
     </div>
 
     <div class="controls">
       <button class="btn danger" id="clearBtn" title="Clear input" aria-label="Clear input"><span class="material-icons">delete</span></button>
       <button class="btn" id="exportPdfBtn" title="Export as PDF" aria-label="Export as PDF"><span class="material-icons">picture_as_pdf</span><span class="btn-label">PDF</span></button>
-      <button class="btn" id="exportHtmlBtn" title="Export as HTML" aria-label="Export as HTML"><span class="material-icons">html</span><span class="btn-label">HTML</span></button>
+      <button class="btn export-html-btn" id="exportHtmlBtn" title="Export as HTML" aria-label="Export as HTML"><svg class="export-html-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 16 4 12l4-4 1.4 1.4L6.8 12l2.6 2.6L8 16Zm8 0-1.4-1.4 2.6-2.6-2.6-2.6L16 8l4 4-4 4Zm-2-12-3.5 16h-2L12 4h2Z"/></svg><span class="btn-label">HTML</span></button>
       <button class="btn" id="exportTxtBtn" title="Export as plain text" aria-label="Export as plain text"><span class="material-icons">text_snippet</span><span class="btn-label">TXT</span></button>
       <button class="btn" id="exportDocxBtn" title="Export as Word document" aria-label="Export as Word document"><span class="material-icons">description</span><span class="btn-label">DOCX</span></button>
       <button class="btn" id="exportMdBtn" title="Download Markdown source" aria-label="Download Markdown source"><span class="material-icons">code</span><span class="btn-label">MD</span></button>
